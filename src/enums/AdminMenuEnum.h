@@ -1,0 +1,20 @@
+#ifndef ADMINMENU_H
+#define ADMINMENU_H
+
+enum AdminMenu {
+    MENU_NO_ENTRY,
+    CARD_RESET,
+    MAX_VOLUME,
+    MIN_VOLUME,
+    INITIAL_VOLUME,
+    EQUALIZER,
+    MODIFIER_CARD,
+    SHORTCUTS,
+    STANDBY_TIMER,
+    BATCH_CARDS,
+    INVERT_BUTTONS,
+    RESET,
+    ADMIN_LOCK
+};
+
+#endif

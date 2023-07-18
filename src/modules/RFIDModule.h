@@ -9,6 +9,7 @@
 #include "../controller/ButtonController.h"
 #include "../controller/MenuController.h"
 #include "../enums/MP3TrackEnum.h"
+#include "../enums/CardEventEnum.h"
 #include "../utils/Utils.h"
 #include "MP3Module.h"
 
@@ -25,19 +26,22 @@ class RFIDModule {
     MFRC522::StatusCode status;
 
     bool isNewCardPresent();
+    bool isCardRemoved();
     void setupCard(const Folder folder);
     void readCard();
     void writeCard(const NfcCard nfcCard);
     void sleep();
+    void handleCardEvent(CardEvent cardEvent);
+    String getCardUID();
 
    private:
     MP3Module* mp3Module;
     ButtonController* buttonController;
     TonuinoState* tonuinoState;
-
     void initializeMfr522();
     void authenticateCard(MFRC522::PICC_Type mifareType);
     MFRC522::PICC_Type getCardType();
+    
 };
 
 #endif

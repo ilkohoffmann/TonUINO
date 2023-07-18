@@ -6,9 +6,11 @@
 #include "controller/SettingsController.h"
 #include "controller/StandbyTimerController.h"
 #include "enums/FolderModeEnum.h"
+#include "enums/CardEventEnum.h"
 #include "modifier/Modifier.h"
 #include "modules/MP3Module.h"
 #include "modules/RFIDModule.h"
+#include "utils/MemoryUtils.h"
 
 class TonuinoComponents {
    public:
@@ -30,6 +32,7 @@ class TonuinoComponents {
     MenuController *menuController;
 
     // Functions
+    void handleButtons();
     void handleAllButtonsPress();
     void handlePauseButtonPress();
     void handlePauseButtonLongPress();
@@ -37,6 +40,8 @@ class TonuinoComponents {
     void handleUpButtonLongPress();
     void handleDownButtonPress();
     void handleDownButtonLongPress();
+    void handleRFIDCard(CardEvent cardEvent);
     void handleNewRFIDCard();
+    void handleRemovedRFIDCard();
     void playShortcut(uint8_t shortcutIndex);
 };

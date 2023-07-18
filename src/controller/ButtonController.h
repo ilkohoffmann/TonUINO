@@ -6,8 +6,9 @@
 
 #include "../config/config.h"
 #include "../config/structs.h"
-#include "../enums/ButtonPress.h"
+#include "../enums/ButtonPressEnum.h"
 #include "../modules/MP3Module.h"
+#include "../utils/MemoryUtils.h"
 
 class ButtonController {
    public:

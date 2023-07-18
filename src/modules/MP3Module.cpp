@@ -15,7 +15,9 @@ void MP3Module::start() { dfMini->start(); }
 
 void MP3Module::sleep() { dfMini->sleep(); }
 
-bool MP3Module::isPlaying() { return !digitalRead(CONFIG_BUSY_PIN); }
+bool MP3Module::isPlaying() { return !digitalRead(CONFIG_DFPLAYER_BUSY_PIN); }
+
+bool MP3Module::isPaused() { return digitalRead(CONFIG_DFPLAYER_BUSY_PIN); }
 
 void MP3Module::playMp3FolderTrack(uint16_t track) {
     Serial.println(F("== playMp3FolderTrack()"));
@@ -77,140 +79,143 @@ void MP3Module::waitForTrackToFinish() {
     }
 }
 
-void MP3Module::playFolder(const Folder folder) {
+void MP3Module::playFolder(const Folder &folder) {
     Serial.println(F("=== playFolder()"));
-    // Serial.print(lastTrackFinished);
-    Serial.println(F("Address dfmini: "));
-    Serial.println((unsigned long)dfMini);
 
-    // standbyTimerController->disableTimer();
+    Serial.print(F("Folder: "));
+    Serial.println(folder.number);
+
+    MemoryUtils::printFreeMemory();
+
+    standbyTimerController->disableTimer();
+
+    MemoryUtils::printFreeMemory();
 
     lastTrackFinished = 0;
-    // uint16_t trackCount = dfMini->getFolderTrackCount(folder.number);
+    uint16_t trackCount = dfMini->getFolderTrackCount(folder.number);
     firstTrack = 1;
 
     Serial.print(F("Dateien in Ordner: "));
     Serial.println(folder.number);
 
-    // switch (folder.mode) {
-    //     // Hörspielmodus: eine zufällige Datei aus dem Ordner
-    //     case FolderMode::RANDOM_MODE:
-    //         Serial.println(F("Hörspielmodus -> zufälligen Track
-    //         wiedergeben"));
-    //         // Select random track in folder
-    //         currentTrack = random(1, trackCount + 1);
-    //         Serial.println(currentTrack);
-    //         // Play selected track
-    //         dfMini->playFolderTrack(folder.number, currentTrack);
-    //         break;
+    switch (folder.mode) {
+        // Hörspielmodus: eine zufällige Datei aus dem Ordner
+        case FolderMode::RANDOM_MODE:
+            Serial.println(F("Hörspielmodus -> zufälligen Track wiedergeben"));
+            // Select random track in folder
+            currentTrack = random(1, trackCount + 1);
+            Serial.println(currentTrack);
+            // Play selected track
+            dfMini->playFolderTrack(folder.number, currentTrack);
+            break;
 
-    //     // Album Modus: kompletten Ordner spielen
-    //     case FolderMode::ALBUM_MODE:
-    //         Serial.println(F("Album Modus -> kompletten Ordner
-    //         wiedergeben"));
-    //         // Start from first track in folder
-    //         currentTrack = 1;
-    //         // Play first track
-    //         dfMini->playFolderTrack(folder.number, currentTrack);
-    //         break;
+        // Album Modus: kompletten Ordner spielen
+        case FolderMode::ALBUM_MODE:
+            Serial.println(F("Album Modus -> kompletten Ordner wiedergeben"));
+            // Start from first track in folder
+            currentTrack = 1;
+            // Play first track
+            dfMini->playFolderTrack(folder.number, currentTrack);
+            break;
 
-    //     // Party Modus: Ordner in zufälliger Reihenfolge
-    //     case FolderMode::PARTY_MODE:
-    //         Serial.println(F(
-    //             "Party Modus -> Ordner in zufälliger Reihenfolge
-    //             wiedergeben"));
-    //         shuffleQueue();
-    //         // Start from first track in shuffled queue
-    //         currentTrack = 1;
-    //         // Play first track in queue
-    //         dfMini->playFolderTrack(folder.number, queue[currentTrack - 1]);
-    //         break;
+        // Party Modus: Ordner in zufälliger Reihenfolge
+        case FolderMode::PARTY_MODE:
+            Serial.println(F(
+                "Party Modus -> Ordner in zufälliger Reihenfolge wiedergeben"));
+            shuffleQueue();
+            // Start from first track in shuffled queue
+            currentTrack = 1;
+            // Play first track in queue
+            dfMini->playFolderTrack(folder.number, queue[currentTrack - 1]);
+            break;
 
-    //     // Einzel Modus: eine Datei aus dem Ordner abspielen
-    //     case FolderMode::SINGLE_MODE:
-    //         Serial.println(
-    //             F("Einzel Modus -> eine Datei aus dem Odrdner abspielen"));
-    //         // Select track specified in special variable
-    //         currentTrack = folder.special;
-    //         // Play selected track
-    //         dfMini->playFolderTrack(folder.number, currentTrack);
-    //         break;
+        // Einzel Modus: eine Datei aus dem Ordner abspielen
+        case FolderMode::SINGLE_MODE:
+            Serial.println(
+                F("Einzel Modus -> eine Datei aus dem Odrdner abspielen"));
+            // Select track specified in special variable
+            currentTrack = folder.special;
+            // Play selected track
+            dfMini->playFolderTrack(folder.number, currentTrack);
+            break;
 
-    //     // Hörbuch Modus: kompletten Ordner spielen und Fortschritt merken
-    //     case FolderMode::AUDIOBOOK_MODE:
-    //         Serial.println(
-    //             F("Hörbuch Modus -> kompletten Ordner spielen und Fortschritt
-    //             "
-    //               "merken"));
-    //         // Retrieve saved progress from EEPROM
-    //         currentTrack = EEPROM.read(folder.number);
-    //         if (currentTrack == 0 ||
-    //             // If progress is invalid, start
-    //             // from first track
-    //             currentTrack > trackCount) {
-    //             currentTrack = 1;
-    //         }
-    //         dfMini->playFolderTrack(folder.number, currentTrack);
-    //         break;
+        // Hörbuch Modus: kompletten Ordner spielen und Fortschritt merken
+        case FolderMode::AUDIOBOOK_MODE:
+            Serial.println(
+                F("Hörbuch Modus -> kompletten Ordner spielen und Fortschritt "
+                  "merken"));
+            // Retrieve saved progress from EEPROM
+            currentTrack = EEPROM.read(folder.number);
+            if (currentTrack == 0 ||
+                // If progress is invalid, start
+                // from first track
+                currentTrack > trackCount) {
+                currentTrack = 1;
+            }
+            dfMini->playFolderTrack(folder.number, currentTrack);
+            break;
 
-    //     // Spezialmodus Von-Bin: Hörspiel: eine zufällige Datei aus dem
-    //     Ordner case FolderMode::SPECIAL_MODE_1:
-    //         Serial.println(
-    //             F("Spezialmodus Von-Bin: Hörspiel -> zufälligen Track "
-    //               "wiedergeben"));
-    //         Serial.print(folder.special);
-    //         Serial.print(F(" bis "));
-    //         Serial.println(folder.special2);
-    //         // Set new track count based on
-    //         // number in special2 variable
-    //         trackCount = folder.special2;
-    //         // Select random track between special
-    //         // and special2 variables
-    //         currentTrack = random(folder.special, trackCount + 1);
-    //         Serial.println(currentTrack);
-    //         dfMini->playFolderTrack(folder.number, currentTrack);
-    //         break;
+        // Spezialmodus Von-Bin: Hörspiel: eine zufällige Datei aus dem Ordner
+        case FolderMode::SPECIAL_MODE_1:
+            Serial.println(
+                F("Spezialmodus Von-Bin: Hörspiel -> zufälligen Track "
+                  "wiedergeben"));
+            Serial.print(folder.special);
+            Serial.print(F(" bis "));
+            Serial.println(folder.special2);
+            // Set new track count based on
+            // number in special2 variable
+            trackCount = folder.special2;
+            // Select random track between special
+            // and special2 variables
+            currentTrack = random(folder.special, trackCount + 1);
+            Serial.println(currentTrack);
+            dfMini->playFolderTrack(folder.number, currentTrack);
+            break;
 
-    //     // Spezialmodus Von-Bis: Album:
-    //     // alle Dateien zwischen Start und End spielen
-    //     case FolderMode::SPECIAL_MODE_2:
-    //         Serial.println(
-    //             F("Spezialmodus Von-Bis: Album: alle Dateien zwischen Start-
-    //             "
-    //               "und Enddatei spielen"));
-    //         Serial.print(folder.special);
-    //         Serial.print(F(" bis "));
-    //         Serial.println(folder.special2);
-    //         // Set new track count based on
-    //         // number in special2 variable
-    //         trackCount = folder.special2;
-    //         // Start from track specified in special variable
-    //         // Play first track
-    //         currentTrack = folder.special;
-    //         dfMini->playFolderTrack(folder.number, currentTrack);
-    //         break;
+        // Spezialmodus Von-Bis: Album:
+        // alle Dateien zwischen Start und End spielen
+        case FolderMode::SPECIAL_MODE_2:
+            Serial.println(
+                F("Spezialmodus Von-Bis: Album: alle Dateien zwischen Start- "
+                  "und Enddatei spielen"));
+            Serial.print(folder.special);
+            Serial.print(F(" bis "));
+            Serial.println(folder.special2);
+            // Set new track count based on
+            // number in special2 variable
+            trackCount = folder.special2;
+            // Start from track specified in special variable
+            // Play first track
+            currentTrack = folder.special;
+            dfMini->playFolderTrack(folder.number, currentTrack);
+            break;
 
-    //     // Spezialmodus Von-Bis: Party Ordner in zufälliger Reihenfolge
-    //     case FolderMode::SPECIAL_MODE_3:
-    //         Serial.println(
-    //             F("Spezialmodus Von-Bis: Party -> Ordner in zufälliger "
-    //               "Reihenfolge wiedergeben"));
-    //         // Set first track based on
-    //         // number in special variable
-    //         firstTrack = folder.special;
-    //         // Set new track count based on
-    //         // number in special2 variable
-    //         shuffleQueue();
-    //         trackCount = folder.special2;
-    //         // Start from first track in shuffled queue
-    //         currentTrack = 1;
-    //         // Play first track in queue
-    //         dfMini->playFolderTrack(folder.number, queue[currentTrack - 1]);
-    //         break;
-    //     default:
-    //         Serial.println(F("Kein Modus -> nichts tun"));
-    //         break;
-    // }
+        // Spezialmodus Von-Bis: Party Ordner in zufälliger Reihenfolge
+        case FolderMode::SPECIAL_MODE_3:
+            Serial.println(
+                F("Spezialmodus Von-Bis: Party -> Ordner in zufälliger "
+                  "Reihenfolge wiedergeben"));
+            // Set first track based on
+            // number in special variable
+            firstTrack = folder.special;
+            // Set new track count based on
+            // number in special2 variable
+            shuffleQueue();
+            trackCount = folder.special2;
+            // Start from first track in shuffled queue
+            currentTrack = 1;
+            // Play first track in queue
+            dfMini->playFolderTrack(folder.number, queue[currentTrack - 1]);
+            break;
+        default:
+            Serial.println(F("Kein Modus -> nichts tun"));
+            break;
+    }
+}
+
+void MP3Module::playFolder(const uint8_t number) {
+    Serial.println(F("=== playFolder()"));
 }
 
 void MP3Module::updateEqualizer() {
@@ -371,19 +376,18 @@ void MP3Module::initializeDFMini() {
     Serial.println(F("=== initializeDFMini()"));
 
     AdminSettings *adminSettings = settingsController->adminSettings;
-    // Initialize DFPlayr Mini
+    // Initialize DFPlayer Mini
     SoftwareSerial softwareSerial = SoftwareSerial(2, 3);  // RX, TX
-    dfMini = new DFMiniMp3<SoftwareSerial, Mp3Notify>(softwareSerial);
+    dfMini = new DFMiniMp3<HardwareSerial, Mp3Notify>(dfPlayer_serial);
     // Initialize DFPlayer Mini
     dfMini->begin();
     // Wait two seconds for the DFPlayer Mini to be initialized
-    // delay(2000);
+    delay(2000);
     // Set volume to initial volume
     volume = adminSettings->initVolume;
     dfMini->setVolume(volume);
-    Serial.println("Address dfmini: ");
+    Serial.print("Address dfmini: ");
     Serial.println((unsigned long)dfMini);
-    // Set equalizer to initial
 }
 
 void MP3Module::shuffleQueue() {

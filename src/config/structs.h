@@ -16,6 +16,7 @@ struct Folder {
 
 // This object stores nfc tag data
 struct NfcCard {
+    String uid;
     uint32_t cookie;
     uint8_t version;
     Folder folder;
@@ -45,7 +46,7 @@ struct TonuinoState {
     // unsigned long sleepAtMillis;
     NfcCard *activeNfcCard;
     Modifier *activeModifier;
-
+    bool cardPresent;
     TonuinoState() : activeNfcCard(new NfcCard()), activeModifier(nullptr) {}
 };
 

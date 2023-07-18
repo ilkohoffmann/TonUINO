@@ -73,7 +73,7 @@ void initializeRandomSeed() {
 void initializePins() {
     Serial.println(F("=== setPins()"));
 
-    // spannung einschalten
+    // Set the shutdown pin as an output
     pinMode(CONFIG_SHUTDOWN_PIN, OUTPUT);
     digitalWrite(CONFIG_SHUTDOWN_PIN, HIGH);
 
@@ -86,7 +86,7 @@ void initializePins() {
     digitalWrite(19, LOW);
 
     // Set the busy pin as input
-    pinMode(CONFIG_BUSY_PIN, INPUT);
+    pinMode(CONFIG_DFPLAYER_BUSY_PIN, INPUT);
 
     // Set pins for pause, up, and down buttons as inputs with pull-up resistors
     pinMode(CONFIG_BUTTON_PAUSE_PIN, INPUT_PULLUP);
@@ -99,10 +99,6 @@ void initializePins() {
     pinMode(CONFIG_BUTTON_4_PIN, INPUT_PULLUP);
     pinMode(CONFIG_BUTTON_5_PIN, INPUT_PULLUP);
 #endif
-
-    // Set the shutdown pin as an output and initially set it to LOW
-    pinMode(CONFIG_SHUTDOWN_PIN, OUTPUT);
-    digitalWrite(CONFIG_SHUTDOWN_PIN, LOW);
 }
 
 void resetIfAllButtonsPressed() {

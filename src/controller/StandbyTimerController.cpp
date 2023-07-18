@@ -8,7 +8,7 @@ StandbyTimerController::StandbyTimerController(
     : settingsController(settingsController) {}
 
 void StandbyTimerController::setTimer() {
-    Serial.println(F("=== setstandbyTimer()"));
+    Serial.println(F("=== setStandbyTimer()"));
 
     AdminSettings* adminSettings = settingsController->adminSettings;
 
@@ -35,9 +35,9 @@ void StandbyTimerController::checkTimerAtMillis(unsigned long sleepAtMillis,
 
     if (sleepAtMillis != 0 && millis() > sleepAtMillis) {
         Serial.println(F("=== power off!"));
+        
         // enter sleep state
-        digitalWrite(CONFIG_SHUTDOWN_PIN, HIGH);
-        delay(500);
+        digitalWrite(CONFIG_SHUTDOWN_PIN, LOW);
 
         rfidModule->sleep();
         mp3Module->sleep();

@@ -1,12 +1,12 @@
-#ifndef CONFIG_CLASSIC_H
-#define CONFIG_CLASSIC_H
+#ifndef CONFIG_TMP_H
+#define CONFIG_TMP_H
 
 // Buttons
 #define CONFIG_BUTTON_PAUSE_PIN A0
-#define CONFIG_BUTTON_UP_PIN A1
-#define CONFIG_BUTTON_DOWN_PIN A2
-#define CONFIG_BUSY_PIN 4
-#define CONFIG_SHUTDOWN_PIN 7
+#define CONFIG_BUTTON_UP_PIN A2
+#define CONFIG_BUTTON_DOWN_PIN A1
+#define CONFIG_BUSY_PIN 13
+#define CONFIG_SHUTDOWN_PIN 27
 #define CONFIG_OPEN_ANALOG_PIN A7
 
 #ifdef FIVEBUTTONS
@@ -37,7 +37,7 @@
 #define CONFIG_NUM_SHORTCUTS 4
 
 // MFRC522
-#define CONFIG_RST_PIN 9                 // Configurable, see typical pin layout above
-#define CONFIG_SS_PIN 10                 // Configurable, see typical pin layout above
+#define CONFIG_RST_PIN 11
+#define CONFIG_SS_PIN 7
 
 #endif

@@ -12,6 +12,23 @@ bool RFIDModule::isNewCardPresent() {
     return mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial();
 }
 
+bool RFIDModule::isCardRemoved() {
+    // Buffer to store the response from the PICC
+    byte bufferATQA[2];
+    byte bufferSize = sizeof(bufferATQA);
+
+    // Send a Wake-up command and store the result
+    MFRC522::StatusCode result = mfrc522.PICC_WakeupA(bufferATQA, &bufferSize);
+
+    // If the result is not STATUS_OK, then the card is not present.
+    if (result != MFRC522::STATUS_OK) {
+        Serial.println(F("Card removed."));
+        return true;
+    }
+
+    return false;
+}
+
 void RFIDModule::setupCard(const Folder folder) {
     NfcCard nfcCard;
 
@@ -24,7 +41,7 @@ void RFIDModule::setupCard(const Folder folder) {
     // allowing user to abort with button press
     while (!mfrc522.PICC_IsNewCardPresent()) {
         if (buttonController->upOrDownButtonReleased()) {
-            Serial.print(F("Abgebrochen!"));
+            Serial.println(F("Aborted!"));
             mp3Module->playMp3FolderTrack(MP3Track::ABORT);
             return;
         }
@@ -37,7 +54,7 @@ void RFIDModule::setupCard(const Folder folder) {
     // function to avoid further processing with a null card ID.
     if (!mfrc522.PICC_ReadCardSerial()) return;
 
-    Serial.print(F("Karte wird neu konfiguriert!"));
+    Serial.println(F("Card is being reconfigured!"));
     nfcCard.folder = folder;
 
     // Persist configuration
@@ -54,11 +71,12 @@ void RFIDModule::setupCard(const Folder folder) {
 }
 
 void RFIDModule::readCard() {
-    Serial.println(F("===readCard()"));
+    Serial.println(F("=== readCard()"));
 
-    // Print card UID
-    Serial.print(F("Card UID:"));
-    Utils::dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
+    // Get card UID
+    String cardUID = getCardUID();
+    Serial.print(F("Card UID: "));
+    Serial.println(cardUID);
 
     // Initialize variables
     NfcCard nfcCard;
@@ -113,6 +131,7 @@ void RFIDModule::readCard() {
     uint32_t tempCookie = ((uint32_t)buffer[0] << 24) |
                           ((uint32_t)buffer[1] << 16) |
                           ((uint32_t)buffer[2] << 8) | (uint32_t)buffer[3];
+    nfcCard.uid = cardUID;
     nfcCard.cookie = tempCookie;
     nfcCard.version = buffer[4];
     nfcCard.folder.number = buffer[5];
@@ -122,6 +141,12 @@ void RFIDModule::readCard() {
 
     // Replace activeNfcCard with new card
     *(tonuinoState->activeNfcCard) = nfcCard;
+
+    Serial.print(F("Folder number nfc: "));
+    Serial.println(nfcCard.folder.number);
+    Serial.print(F("Folder number activeNfcCard: "));
+    Serial.println(tonuinoState->activeNfcCard->folder.number);
+
    
     // TODO: Check if thats the right place to call this functions
     // Deactivate currently active PICC
@@ -247,6 +272,30 @@ void RFIDModule::sleep() {
     // powerdown to 27mA (powerbank switches off after 30-60s)
     mfrc522.PCD_AntennaOff();
     mfrc522.PCD_SoftPowerDown();
+}
+
+void handleCardEvent(CardEvent cardEvent) {
+
+    switch (cardEvent) {
+    case CardEvent::NEW_CARD: {
+         break;
+    }
+    case CardEvent::CARD_REMOVED: {
+         break;
+    }
+    default:
+        break;
+    }
+}
+
+String RFIDModule::getCardUID() {
+    String cardUID = "";
+    for (byte i = 0; i < mfrc522.uid.size; i++) {
+        cardUID += String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
+        cardUID += String(mfrc522.uid.uidByte[i], HEX);
+    }
+    cardUID.toUpperCase();
+    return cardUID;
 }
 
 // Private members

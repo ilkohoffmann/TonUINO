@@ -1,19 +1,24 @@
 #include "SettingsController.h"
 
-SettingsController::SettingsController() {
+SettingsController::SettingsController() : adminSettings(new AdminSettings()) {
     storeAdminSettingsAddress = sizeof(uint8_t) * 100;
     if (!loadSettingsFromFlash()) {
         resetSettings();
     };
-     
 }
 
 bool SettingsController::loadSettingsFromFlash() {
     Serial.println(F("=== loadSettingsFromFlash()"));
-
+    Serial.print(F("storeAdminSettingsAddress: "));
+    Serial.println(storeAdminSettingsAddress);
     EEPROM.get(storeAdminSettingsAddress, adminSettings);
+    Serial.print(F("cookie: "));
+    Serial.println(adminSettings->cookie);
+    Serial.print(F("CARD_COOKIE: "));
+    Serial.println(CARD_COOKIE);
     if (adminSettings->cookie != CARD_COOKIE) {
         Serial.println(F("Settings not found."));
+        
         return false;
     } else {
         Serial.println(F("Settings loaded."));
@@ -26,16 +31,20 @@ bool SettingsController::loadSettingsFromFlash() {
 
 void SettingsController::writeSettingsToFlash() {
     Serial.println(F("=== writeSettingsToFlash()"));
+    Serial.print(F("storeAdminSettingsAddress: "));
+    Serial.println(storeAdminSettingsAddress);
 
     EEPROM.put(storeAdminSettingsAddress, adminSettings);
     printAdminSettings();
 }
 
 void SettingsController::resetSettings() {
+    
     Serial.println(F("=== initializeAdminSettings()"));
-
+    
+    adminSettings = new AdminSettings();
     adminSettings->cookie = CARD_COOKIE;
-    adminSettings->version = VERSION;
+    adminSettings->version = CARD_VERSION_TEST;
     adminSettings->maxVolume = DEFAULT_MAX_VOLUME;
     adminSettings->minVolume = DEFAULT_MIN_VOLUME;
     adminSettings->initVolume = DEFAULT_INIT_VOLUME;

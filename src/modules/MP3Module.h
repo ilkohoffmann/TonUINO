@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <DFMiniMp3.h>
 #include <EEPROM.h>
+#include <MemoryUsage.h>
 #include <SoftwareSerial.h>
 
 #include "../config/config.h"
@@ -14,6 +15,9 @@
 #include "../modifier/Modifier.h"
 #include "../utils/Utils.h"
 #include "Mp3Notify.h"
+#include "utils/MemoryUtils.h"
+// forward declare the notify class, just the name
+class Mp3Notify;
 
 class MP3Module {
    public:
@@ -27,7 +31,9 @@ class MP3Module {
     void start();
     void sleep();
     bool isPlaying();
-    void playFolder(const Folder folder);
+    bool isPaused();
+    void playFolder(const Folder &folder);
+    void playFolder(const uint8_t folderNum);
     void playMp3FolderTrack(const uint16_t track);
     void playAdvertisementTrack();
     void playFolderTrack(const uint8_t folderNum, const uint8_t track);
@@ -41,7 +47,7 @@ class MP3Module {
 
    private:
     // Members
-    DFMiniMp3<SoftwareSerial, Mp3Notify> *dfMini;
+    DFMiniMp3<HardwareSerial, Mp3Notify> *dfMini;
     StandbyTimerController *standbyTimerController;
     SettingsController *settingsController;
     TonuinoState *tonuinoState;
